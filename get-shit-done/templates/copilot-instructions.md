@@ -1,4 +1,5 @@
 <!-- GSD:BEGIN — Do not edit this section manually. Managed by get-shit-done installer. -->
+<!-- Note: ~/.claude/ paths below are canonical placeholders replaced during install -->
 
 # GSD — Get Shit Done
 

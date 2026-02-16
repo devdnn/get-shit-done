@@ -106,8 +106,8 @@ npx get-shit-done-cc --opencode --global # Install to ~/.config/opencode/
 # Gemini CLI
 npx get-shit-done-cc --gemini --global   # Install to ~/.gemini/
 
-# GitHub Copilot (always local)
-npx get-shit-done-cc --copilot --local   # Install to ./.github/
+# GitHub Copilot
+npx get-shit-done-cc --copilot --global  # Install to ~/.copilot/
 
 # All runtimes
 npx get-shit-done-cc --all --global      # Install to all directories

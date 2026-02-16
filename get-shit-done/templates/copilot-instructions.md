@@ -12,26 +12,26 @@ Run these via bash to manage the development workflow:
 
 ```bash
 # Project initialization
-node .github/gsd/bin/gsd-cli.js new-project          # Initialize project: questions → research → requirements → roadmap
-node .github/gsd/bin/gsd-cli.js map-codebase          # Analyze existing codebase before new-project
+node ~/.claude/gsd/bin/gsd-cli.js new-project          # Initialize project: questions → research → requirements → roadmap
+node ~/.claude/gsd/bin/gsd-cli.js map-codebase          # Analyze existing codebase before new-project
 
 # Phase workflow (repeat for each phase)
-node .github/gsd/bin/gsd-cli.js discuss-phase <N>     # Capture implementation decisions
-node .github/gsd/bin/gsd-cli.js plan-phase <N>        # Research + plan + verify
-node .github/gsd/bin/gsd-cli.js execute-phase <N>     # Execute plans in parallel waves
-node .github/gsd/bin/gsd-cli.js verify-work <N>       # Manual user acceptance testing
+node ~/.claude/gsd/bin/gsd-cli.js discuss-phase <N>     # Capture implementation decisions
+node ~/.claude/gsd/bin/gsd-cli.js plan-phase <N>        # Research + plan + verify
+node ~/.claude/gsd/bin/gsd-cli.js execute-phase <N>     # Execute plans in parallel waves
+node ~/.claude/gsd/bin/gsd-cli.js verify-work <N>       # Manual user acceptance testing
 
 # Milestone management
-node .github/gsd/bin/gsd-cli.js audit-milestone       # Verify milestone achieved its goals
-node .github/gsd/bin/gsd-cli.js complete-milestone     # Archive milestone, tag release
-node .github/gsd/bin/gsd-cli.js new-milestone          # Start next version
+node ~/.claude/gsd/bin/gsd-cli.js audit-milestone       # Verify milestone achieved its goals
+node ~/.claude/gsd/bin/gsd-cli.js complete-milestone     # Archive milestone, tag release
+node ~/.claude/gsd/bin/gsd-cli.js new-milestone          # Start next version
 
 # Quick tasks
-node .github/gsd/bin/gsd-cli.js quick                 # Ad-hoc task with GSD guarantees
+node ~/.claude/gsd/bin/gsd-cli.js quick                 # Ad-hoc task with GSD guarantees
 
 # Navigation
-node .github/gsd/bin/gsd-cli.js progress              # Where am I? What's next?
-node .github/gsd/bin/gsd-cli.js help                   # Show all commands
+node ~/.claude/gsd/bin/gsd-cli.js progress              # Where am I? What's next?
+node ~/.claude/gsd/bin/gsd-cli.js help                   # Show all commands
 ```
 
 ### Workflow Rules

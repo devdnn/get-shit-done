@@ -45,7 +45,7 @@ if (hasAll) {
 function getDirName(runtime) {
   if (runtime === 'opencode') return '.opencode';
   if (runtime === 'gemini') return '.gemini';
-  if (runtime === 'copilot') return '.github';
+  if (runtime === 'copilot') return '.copilot';
   return '.claude';
 }
 
@@ -67,7 +67,7 @@ function getConfigDirFromHome(runtime, isGlobal) {
     return "'.config', 'opencode'";
   }
   if (runtime === 'gemini') return "'.gemini'";
-  if (runtime === 'copilot') return "'.github'";
+  if (runtime === 'copilot') return "'.copilot'";
   return "'.claude'";
 }
 
@@ -122,11 +122,14 @@ function getGlobalDir(runtime, explicitDir = null) {
   }
 
   if (runtime === 'copilot') {
-    // Copilot: project-local only (.github/), no global install
+    // Copilot: --config-dir > COPILOT_CONFIG_DIR > ~/.copilot
     if (explicitDir) {
       return expandTilde(explicitDir);
     }
-    return path.join(process.cwd(), '.github');
+    if (process.env.COPILOT_CONFIG_DIR) {
+      return expandTilde(process.env.COPILOT_CONFIG_DIR);
+    }
+    return path.join(os.homedir(), '.copilot');
   }
   
   // Claude Code: --config-dir > CLAUDE_CONFIG_DIR > ~/.claude
@@ -184,7 +187,7 @@ console.log(banner);
 
 // Show help if requested
 if (hasHelp) {
-  console.log(`  ${yellow}Usage:${reset} npx get-shit-done-cc [options]\n\n  ${yellow}Options:${reset}\n    ${cyan}-g, --global${reset}              Install globally (to config directory)\n    ${cyan}-l, --local${reset}               Install locally (to current directory)\n    ${cyan}--claude${reset}                  Install for Claude Code only\n    ${cyan}--opencode${reset}                Install for OpenCode only\n    ${cyan}--gemini${reset}                  Install for Gemini only\n    ${cyan}--copilot${reset}                 Install for GitHub Copilot (local only)\n    ${cyan}--all${reset}                     Install for all runtimes\n    ${cyan}-u, --uninstall${reset}           Uninstall GSD (remove all GSD files)\n    ${cyan}-c, --config-dir <path>${reset}   Specify custom config directory\n    ${cyan}-h, --help${reset}                Show this help message\n    ${cyan}--force-statusline${reset}        Replace existing statusline config\n\n  ${yellow}Examples:${reset}\n    ${dim}# Interactive install (prompts for runtime and location)${reset}\n    npx get-shit-done-cc\n\n    ${dim}# Install for Claude Code globally${reset}\n    npx get-shit-done-cc --claude --global\n\n    ${dim}# Install for Gemini globally${reset}\n    npx get-shit-done-cc --gemini --global\n\n    ${dim}# Install for all runtimes globally${reset}\n    npx get-shit-done-cc --all --global\n\n    ${dim}# Install to custom config directory${reset}\n    npx get-shit-done-cc --claude --global --config-dir ~/.claude-bc\n\n    ${dim}# Install to current project only${reset}\n    npx get-shit-done-cc --claude --local\n\n    ${dim}# Uninstall GSD from Claude Code globally${reset}\n    npx get-shit-done-cc --claude --global --uninstall\n\n  ${yellow}Notes:${reset}\n    The --config-dir option is useful when you have multiple configurations.\n    It takes priority over CLAUDE_CONFIG_DIR / GEMINI_CONFIG_DIR environment variables.\n`);
+  console.log(`  ${yellow}Usage:${reset} npx get-shit-done-cc [options]\n\n  ${yellow}Options:${reset}\n    ${cyan}-g, --global${reset}              Install globally (to config directory)\n    ${cyan}-l, --local${reset}               Install locally (to current directory)\n    ${cyan}--claude${reset}                  Install for Claude Code only\n    ${cyan}--opencode${reset}                Install for OpenCode only\n    ${cyan}--gemini${reset}                  Install for Gemini only\n    ${cyan}--copilot${reset}                 Install for GitHub Copilot\n    ${cyan}--all${reset}                     Install for all runtimes\n    ${cyan}-u, --uninstall${reset}           Uninstall GSD (remove all GSD files)\n    ${cyan}-c, --config-dir <path>${reset}   Specify custom config directory\n    ${cyan}-h, --help${reset}                Show this help message\n    ${cyan}--force-statusline${reset}        Replace existing statusline config\n\n  ${yellow}Examples:${reset}\n    ${dim}# Interactive install (prompts for runtime and location)${reset}\n    npx get-shit-done-cc\n\n    ${dim}# Install for Claude Code globally${reset}\n    npx get-shit-done-cc --claude --global\n\n    ${dim}# Install for Gemini globally${reset}\n    npx get-shit-done-cc --gemini --global\n\n    ${dim}# Install for GitHub Copilot globally${reset}\n    npx get-shit-done-cc --copilot --global\n\n    ${dim}# Install for all runtimes globally${reset}\n    npx get-shit-done-cc --all --global\n\n    ${dim}# Install to custom config directory${reset}\n    npx get-shit-done-cc --claude --global --config-dir ~/.claude-bc\n\n    ${dim}# Install to current project only${reset}\n    npx get-shit-done-cc --claude --local\n\n    ${dim}# Uninstall GSD from Claude Code globally${reset}\n    npx get-shit-done-cc --claude --global --uninstall\n\n  ${yellow}Notes:${reset}\n    The --config-dir option is useful when you have multiple configurations.\n    It takes priority over CLAUDE_CONFIG_DIR / GEMINI_CONFIG_DIR / COPILOT_CONFIG_DIR environment variables.\n`);
   process.exit(0);
 }
 
@@ -1377,13 +1380,6 @@ function install(isGlobal, runtime = 'claude') {
   const dirName = getDirName(runtime);
   const src = path.join(__dirname, '..');
 
-  // Copilot is always local — reject global installs
-  if (isCopilot && isGlobal) {
-    console.log(`  ${yellow}⚠${reset} Copilot installs are project-local only (.github/).`);
-    console.log(`    Use ${cyan}--copilot --local${reset} or just ${cyan}--copilot${reset} instead.\n`);
-    return null;
-  }
-
   // Get the target directory based on runtime and install type
   const targetDir = isGlobal
     ? getGlobalDir(runtime, explicitConfigDir)
@@ -1418,12 +1414,12 @@ function install(isGlobal, runtime = 'claude') {
 
   // OpenCode uses 'command/' (singular) with flat structure
   // Claude Code & Gemini use 'commands/' (plural) with nested structure
-  // Copilot uses '.github/gsd/' with copilot-instructions.md
+  // Copilot uses gsd/ subdirectory with copilot-instructions.md
   if (isCopilot) {
-    // Copilot: copy GSD content to .github/gsd/ subdirectory
+    // Copilot: copy GSD content to gsd/ subdirectory
     const gsdDest = path.join(targetDir, 'gsd');
     fs.mkdirSync(gsdDest, { recursive: true });
-    console.log(`  ${green}✓${reset} Created .github/gsd/`);
+    console.log(`  ${green}✓${reset} Created gsd/`);
   } else if (isOpencode) {
     // OpenCode: flat structure in command/ directory
     const commandDir = path.join(targetDir, 'command');
@@ -1545,7 +1541,9 @@ function install(isGlobal, runtime = 'claude') {
     const instructionsDest = path.join(targetDir, 'copilot-instructions.md');
 
     if (fs.existsSync(instructionsSrc)) {
-      const gsdSection = fs.readFileSync(instructionsSrc, 'utf8');
+      // Read template and replace ~/.claude/ paths with runtime-appropriate prefix
+      let gsdSection = fs.readFileSync(instructionsSrc, 'utf8');
+      gsdSection = gsdSection.replace(/~\/\.claude\//g, pathPrefix);
 
       if (fs.existsSync(instructionsDest)) {
         // Merge: replace existing GSD section or append
@@ -1694,11 +1692,12 @@ function finishInstall(settingsPath, settings, statuslineCommand, shouldInstallS
 
   // Copilot doesn't use settings.json — just print completion message
   if (isCopilot) {
+    const copilotDir = isGlobal ? '~/.copilot/' : '.copilot/';
     console.log(`
-  ${green}Done!${reset} GSD installed for Copilot in ${cyan}.github/${reset}.
+  ${green}Done!${reset} GSD installed for Copilot in ${cyan}${copilotDir}${reset}.
 
   ${dim}Your copilot-instructions.md has been updated with GSD workflow instructions.${reset}
-  ${dim}GSD reference files are in .github/gsd/${reset}
+  ${dim}GSD reference files are in ${copilotDir}gsd/${reset}
 
   ${cyan}Join the community:${reset} https://discord.gg/5JJgD5svVS
 `);
@@ -1806,7 +1805,7 @@ function promptRuntime(callback) {
   console.log(`  ${yellow}Which runtime(s) would you like to install for?${reset}\n\n  ${cyan}1${reset}) Claude Code ${dim}(~/.claude)${reset}
   ${cyan}2${reset}) OpenCode    ${dim}(~/.config/opencode)${reset} - open source, free models
   ${cyan}3${reset}) Gemini      ${dim}(~/.gemini)${reset}
-  ${cyan}4${reset}) Copilot     ${dim}(.github/)${reset} - GitHub Copilot (local only)
+  ${cyan}4${reset}) Copilot     ${dim}(~/.copilot)${reset} - GitHub Copilot
   ${cyan}5${reset}) All
 `);
 

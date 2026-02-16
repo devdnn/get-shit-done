@@ -22,7 +22,7 @@ GitHub Copilot (Coding Agent and Copilot Chat in IDE) operates differently from 
 | Claude Code | `/gsd:command` slash commands | Markdown + YAML frontmatter |
 | OpenCode | `/gsd-command` flat commands | Markdown + YAML (converted) |
 | Gemini CLI | `/gsd:command` slash commands | TOML agents |
-| **Copilot** | `node .github/gsd/gsd-cli.js <command>` | CLI + instructions |
+| **Copilot** | `node ~/.copilot/gsd/gsd-cli.js <command>` | CLI + instructions |
 
 ---
 
@@ -39,10 +39,10 @@ GitHub Copilot (Coding Agent and Copilot Chat in IDE) operates differently from 
 | # | Task | Files | Dependencies |
 |---|------|-------|-------------|
 | 1.1 | Add `--copilot` CLI flag and runtime detection | `bin/install.js` | None |
-| 1.2 | Implement `getDirName('copilot')` → `.github` | `bin/install.js` | 1.1 |
-| 1.3 | Implement `getGlobalDir('copilot')` — Copilot is project-local only (`.github/`) | `bin/install.js` | 1.1 |
-| 1.4 | Add Copilot to interactive runtime prompt (option 5) | `bin/install.js` | 1.1 |
-| 1.5 | Copy GSD workflow/reference/template files to `.github/gsd/` | `bin/install.js` | 1.2, 1.3 |
+| 1.2 | Implement `getDirName('copilot')` → `.copilot` | `bin/install.js` | 1.1 |
+| 1.3 | Implement `getGlobalDir('copilot')` → `~/.copilot/` (supports `COPILOT_CONFIG_DIR` env var) | `bin/install.js` | 1.1 |
+| 1.4 | Add Copilot to interactive runtime prompt (option 4) | `bin/install.js` | 1.1 |
+| 1.5 | Copy GSD workflow/reference/template files to `gsd/` subdirectory | `bin/install.js` | 1.2, 1.3 |
 | 1.6 | Generate `copilot-instructions.md` with GSD workflow instructions | `bin/install.js` | 1.5 |
 | 1.7 | Update `--all` flag to include copilot | `bin/install.js` | 1.1 |
 | 1.8 | Add uninstall support for Copilot | `bin/install.js` | 1.5 |
@@ -105,18 +105,21 @@ GitHub Copilot (Coding Agent and Copilot Chat in IDE) operates differently from 
 
 ## Architecture Notes
 
-### Why project-local only?
+### Install Locations
 
-Unlike Claude Code (`~/.claude/`) or Gemini (`~/.gemini/`), Copilot doesn't have a global config directory for custom instructions. Instructions live in `.github/copilot-instructions.md` per repository. Therefore:
+Copilot follows the same pattern as other runtimes:
 
-- `--copilot --global` is **not supported** — shows helpful error
-- `--copilot --local` installs to `.github/gsd/` in the current project
-- `--copilot` (no flag) defaults to local install
+| Install Type | Directory | Example |
+|-------------|-----------|---------|
+| Global | `~/.copilot/` | `npx get-shit-done-cc --copilot --global` |
+| Local | `.copilot/` | `npx get-shit-done-cc --copilot --local` |
+
+Supports `COPILOT_CONFIG_DIR` environment variable for custom locations.
 
 ### File Layout
 
 ```
-.github/
+~/.copilot/              # or .copilot/ for local installs
 ├── copilot-instructions.md    # Custom instructions (GSD section appended)
 └── gsd/                       # GSD runtime files
     ├── workflows/             # Workflow definitions
@@ -129,13 +132,13 @@ Unlike Claude Code (`~/.claude/`) or Gemini (`~/.gemini/`), Copilot doesn't have
 
 | GSD Workflow | Claude Code | Copilot |
 |-------------|-------------|---------|
-| New project | `/gsd:new-project` | `node .github/gsd/bin/gsd-cli.js new-project` |
-| Discuss phase | `/gsd:discuss-phase 1` | `node .github/gsd/bin/gsd-cli.js discuss-phase 1` |
-| Plan phase | `/gsd:plan-phase 1` | `node .github/gsd/bin/gsd-cli.js plan-phase 1` |
-| Execute phase | `/gsd:execute-phase 1` | `node .github/gsd/bin/gsd-cli.js execute-phase 1` |
-| Verify work | `/gsd:verify-work 1` | `node .github/gsd/bin/gsd-cli.js verify-work 1` |
-| Quick task | `/gsd:quick` | `node .github/gsd/bin/gsd-cli.js quick` |
-| Progress | `/gsd:progress` | `node .github/gsd/bin/gsd-cli.js progress` |
+| New project | `/gsd:new-project` | `node ~/.copilot/gsd/bin/gsd-cli.js new-project` |
+| Discuss phase | `/gsd:discuss-phase 1` | `node ~/.copilot/gsd/bin/gsd-cli.js discuss-phase 1` |
+| Plan phase | `/gsd:plan-phase 1` | `node ~/.copilot/gsd/bin/gsd-cli.js plan-phase 1` |
+| Execute phase | `/gsd:execute-phase 1` | `node ~/.copilot/gsd/bin/gsd-cli.js execute-phase 1` |
+| Verify work | `/gsd:verify-work 1` | `node ~/.copilot/gsd/bin/gsd-cli.js verify-work 1` |
+| Quick task | `/gsd:quick` | `node ~/.copilot/gsd/bin/gsd-cli.js quick` |
+| Progress | `/gsd:progress` | `node ~/.copilot/gsd/bin/gsd-cli.js progress` |
 
 ### Team Independence
 

@@ -6,6 +6,13 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+- GitHub Copilot runtime support — full GSD workflow system now works with GitHub Copilot Coding Agent
+- `gsd-cli.js` — CLI dispatcher that maps slash commands to CLI subcommands for Copilot environment
+- `--copilot` flag for installer — installs GSD to `~/.copilot/` with `copilot-instructions.md` integration
+- Copilot to `--all` flag — `npx get-shit-done-cc --all --global` now includes Copilot alongside Claude, OpenCode, and Gemini
+- `COPILOT_CONFIG_DIR` environment variable support for custom Copilot installation paths
+
 ## [1.20.0] - 2026-02-15
 
 ### Added
